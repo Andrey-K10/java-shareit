@@ -2,9 +2,6 @@ package ru.practicum.shareit.user;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 public interface UserService {
 
     User addUser(User user);

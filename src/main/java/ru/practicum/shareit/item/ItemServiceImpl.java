@@ -8,9 +8,6 @@ import ru.practicum.shareit.user.UserService;
 
 import java.util.*;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Service
 public class ItemServiceImpl implements ItemService {
 
@@ -33,26 +30,15 @@ public class ItemServiceImpl implements ItemService {
             return null;
         }
 
-        if (itemDto.getName() == null
-                || itemDto.getName().trim().isEmpty()
-                || itemDto.getDescription() == null
-                || itemDto.getAvailable() == null) {
-
-            return null;
-        }
-
-        Item item = new Item();
+        Item item = ItemMapper.toItem(itemDto);
         item.setId(itemIdSequence++);
-        item.setName(itemDto.getName());
-        item.setDescription(itemDto.getDescription());
-        item.setAvailable(itemDto.getAvailable());
         item.setOwner(owner);
 
         items.put(item.getId(), item);
 
         return ItemMapper.toItemDto(item);
     }
-
+    
     @Override
     public ItemDto updateItem(Long userId, Long itemId, ItemDto itemDto) {
 

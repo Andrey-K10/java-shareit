@@ -5,11 +5,15 @@ import org.springframework.http.ResponseEntity;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Positive;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/items")
+@Validated
 public class ItemController {
 
     private final ItemService itemService;
@@ -22,19 +26,12 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<ItemDto> addItem(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
-            @RequestBody ItemDto itemDto) {
+            @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+            @Valid @RequestBody ItemDto itemDto) {
 
-        // проверка существования пользователя
         User owner = userService.getUser(userId);
         if (owner == null) {
             return ResponseEntity.status(404).build();
-        }
-
-        // проверка обязательных полей
-        if (itemDto.getName() == null || itemDto.getName().trim().isEmpty()
-                || itemDto.getDescription() == null || itemDto.getAvailable() == null) {
-            return ResponseEntity.status(400).build();
         }
 
         ItemDto result = itemService.addItem(userId, itemDto);
@@ -43,8 +40,8 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ResponseEntity<ItemDto> updateItem(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
-            @PathVariable Long itemId,
+            @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+            @PathVariable @Positive Long itemId,
             @RequestBody ItemDto itemDto) {
 
         try {
@@ -57,13 +54,12 @@ public class ItemController {
             return ResponseEntity.ok(result);
 
         } catch (SecurityException e) {
-            // редактирование чужой вещи
             return ResponseEntity.status(403).build();
         }
     }
 
     @GetMapping("/{itemId}")
-    public ResponseEntity<ItemDto> getItem(@PathVariable Long itemId) {
+    public ResponseEntity<ItemDto> getItem(@PathVariable @Positive Long itemId) {
         ItemDto result = itemService.getItem(itemId);
         if (result == null) {
             return ResponseEntity.status(404).build();
@@ -73,7 +69,7 @@ public class ItemController {
 
     @GetMapping
     public ResponseEntity<List<ItemDto>> getItems(
-            @RequestHeader("X-Sharer-User-Id") Long userId) {
+            @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
 
         User owner = userService.getUser(userId);
         if (owner == null) {

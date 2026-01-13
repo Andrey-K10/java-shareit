@@ -4,9 +4,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Service
 public class UserServiceImpl implements UserService {
 
