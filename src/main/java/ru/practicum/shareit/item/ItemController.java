@@ -1,28 +1,27 @@
 package ru.practicum.shareit.item;
 
-import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoWithBookings;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
-import jakarta.validation.Valid;
-import org.springframework.validation.annotation.Validated;
-import jakarta.validation.constraints.Positive;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/items")
 @Validated
+@RequiredArgsConstructor
 public class ItemController {
 
     private final ItemService itemService;
     private final UserService userService;
-
-    public ItemController(ItemService itemService, UserService userService) {
-        this.itemService = itemService;
-        this.userService = userService;
-    }
 
     @PostMapping
     public ResponseEntity<ItemDto> addItem(
@@ -34,8 +33,12 @@ public class ItemController {
             return ResponseEntity.status(404).build();
         }
 
-        ItemDto result = itemService.addItem(userId, itemDto);
-        return ResponseEntity.ok(result);
+        try {
+            ItemDto result = itemService.addItem(userId, itemDto);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PatchMapping("/{itemId}")
@@ -46,29 +49,29 @@ public class ItemController {
 
         try {
             ItemDto result = itemService.updateItem(userId, itemId, itemDto);
-
-            if (result == null) {
-                return ResponseEntity.status(404).build();
-            }
-
             return ResponseEntity.ok(result);
-
         } catch (SecurityException e) {
             return ResponseEntity.status(403).build();
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(404).build();
+            }
+            return ResponseEntity.status(404).build();
         }
     }
 
     @GetMapping("/{itemId}")
-    public ResponseEntity<ItemDto> getItem(@PathVariable @Positive Long itemId) {
-        ItemDto result = itemService.getItem(itemId);
-        if (result == null) {
+    public ResponseEntity<ItemDtoWithBookings> getItem(@PathVariable @Positive Long itemId) {
+        try {
+            ItemDtoWithBookings result = itemService.getItem(itemId);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).build();
         }
-        return ResponseEntity.ok(result);
     }
 
     @GetMapping
-    public ResponseEntity<List<ItemDto>> getItems(
+    public ResponseEntity<List<ItemDtoWithBookings>> getItems(
             @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
 
         User owner = userService.getUser(userId);
@@ -76,7 +79,7 @@ public class ItemController {
             return ResponseEntity.status(404).build();
         }
 
-        List<ItemDto> items = itemService.getItemsByOwner(userId);
+        List<ItemDtoWithBookings> items = itemService.getItemsByOwner(userId);
         return ResponseEntity.ok(items);
     }
 
@@ -85,5 +88,19 @@ public class ItemController {
             @RequestParam("text") String text) {
 
         return itemService.searchItems(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<CommentDto> addComment(
+            @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+            @PathVariable @Positive Long itemId,
+            @Valid @RequestBody CommentDto commentDto) {
+
+        try {
+            CommentDto result = ((ItemServiceImpl) itemService).addComment(userId, itemId, commentDto);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
