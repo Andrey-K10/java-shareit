@@ -81,9 +81,7 @@ public class BookingController {
         try {
             List<BookingDto> result = bookingService.getOwnerBookings(userId, state);
             return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(500).build();
         }
     }
