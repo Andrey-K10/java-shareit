@@ -1,69 +1,62 @@
 package ru.practicum.shareit.user;
 
+import ru.practicum.shareit.exception.ConflictException;
 import org.springframework.stereotype.Service;
-
-import java.util.*;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
-    private final Map<Long, User> users = new HashMap<>();
+    private final UserRepository userRepository;
 
-    private Long userIdSequence = 1L;
-
-    @Override
-    public User getUser(Long id) {
-        return users.get(id);
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Override
+    @Transactional
     public User addUser(User user) {
-
-        if (user.getEmail() == null
-                || !user.getEmail().contains("@")) {
-            throw new IllegalArgumentException();
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+            throw new IllegalArgumentException("Invalid email");
         }
 
-        for (User existing : users.values()) {
-            if (existing.getEmail() != null
-                    && existing.getEmail().equalsIgnoreCase(user.getEmail())) {
-                throw new IllegalStateException();
-            }
+        boolean emailExists = userRepository.findAll().stream()
+                .anyMatch(existing -> existing.getEmail().equalsIgnoreCase(user.getEmail()));
+        if (emailExists) {
+            throw new ConflictException("Email already exists");
         }
 
-        user.setId(userIdSequence++);
+        return userRepository.save(user);
+    }
 
-        users.put(user.getId(), user);
-
-        return user;
+    @Override
+    public User getUser(Long id) {
+        return userRepository.findById(id).orElse(null);
     }
 
     @Override
     public List<User> getUsers() {
-        return new ArrayList<>(users.values());
+        return userRepository.findAll();
     }
 
     @Override
+    @Transactional
     public User updateUser(Long id, User user) {
-
-        User existing = users.get(id);
-
-        if (existing == null) {
-            throw new NoSuchElementException();
-        }
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException());
 
         if (user.getEmail() != null) {
-
             if (!user.getEmail().contains("@")) {
                 throw new IllegalArgumentException();
             }
 
-            for (User other : users.values()) {
-                if (!other.getId().equals(id)
-                        && other.getEmail() != null
-                        && other.getEmail().equalsIgnoreCase(user.getEmail())) {
-                    throw new IllegalStateException();
-                }
+            if (userRepository.findAll().stream()
+                    .anyMatch(other -> !other.getId().equals(id)
+                            && other.getEmail().equalsIgnoreCase(user.getEmail()))) {
+                throw new ConflictException("Email already exists");
             }
 
             existing.setEmail(user.getEmail());
@@ -73,11 +66,12 @@ public class UserServiceImpl implements UserService {
             existing.setName(user.getName());
         }
 
-        return existing;
+        return userRepository.save(existing);
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
-        users.remove(id);
+        userRepository.deleteById(id);
     }
 }

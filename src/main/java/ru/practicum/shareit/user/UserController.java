@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 import jakarta.validation.Valid;
@@ -20,8 +21,8 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto addUser(@Valid @RequestBody User user) {
-        return UserMapper.toUserDto(userService.addUser(user));
+    public ResponseEntity<UserDto> addUser(@Valid @RequestBody User user) {
+        return ResponseEntity.ok(UserMapper.toUserDto(userService.addUser(user)));
     }
 
     @GetMapping("/{userId}")
@@ -31,20 +32,21 @@ public class UserController {
 
     @GetMapping
     public List<UserDto> getUsers() {
-
         List<UserDto> result = new ArrayList<>();
-
         for (User user : userService.getUsers()) {
             result.add(UserMapper.toUserDto(user));
         }
-
         return result;
     }
 
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@PathVariable @Positive Long userId,
-                              @RequestBody User user) {
-        return UserMapper.toUserDto(userService.updateUser(userId, user));
+    public ResponseEntity<UserDto> updateUser(@PathVariable @Positive Long userId,
+                                              @RequestBody User user) {
+        try {
+            return ResponseEntity.ok(UserMapper.toUserDto(userService.updateUser(userId, user)));
+        } catch (IllegalArgumentException | NoSuchElementException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{userId}")
