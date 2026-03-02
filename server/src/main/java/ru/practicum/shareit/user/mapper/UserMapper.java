@@ -6,7 +6,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 public final class UserMapper {
 
     private UserMapper() {
-        // запрещаем создание экземпляра
     }
 
     public static UserDto toUserDto(User user) {
