@@ -3,6 +3,7 @@ package ru.practicum.shareit.request;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
@@ -29,7 +30,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     public ItemRequestDto addRequest(Long userId, ItemRequestDto itemRequestDto) {
         User requestor = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         ItemRequest itemRequest = itemRequestMapper.toItemRequest(itemRequestDto);
         itemRequest.setRequestor(requestor);
@@ -42,7 +43,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getUserRequests(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new NoSuchElementException("User not found");
+            throw new NotFoundException("User not found");
         }
 
         List<ItemRequest> requests = itemRequestRepository.findByRequestorIdOrderByCreatedDesc(userId);
@@ -54,7 +55,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getAllRequests(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new NoSuchElementException("User not found");
+            throw new NotFoundException("User not found");
         }
 
         List<ItemRequest> requests = itemRequestRepository.findByRequestorIdNotOrderByCreatedDesc(userId);
@@ -66,7 +67,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestDto getRequestById(Long requestId) {
         ItemRequest request = itemRequestRepository.findById(requestId)
-                .orElseThrow(() -> new NoSuchElementException("Request not found"));
+                .orElseThrow(() -> new NotFoundException("Request not found"));
 
         return enrichWithItems(request);
     }

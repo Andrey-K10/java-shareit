@@ -307,33 +307,11 @@ class ItemServiceImplTest {
         User booker = new User();
         booker.setId(3L);
 
-        Booking lastBooking = new Booking();
-        lastBooking.setId(10L);
-        lastBooking.setStart(LocalDateTime.now().minusDays(2));
-        lastBooking.setEnd(LocalDateTime.now().minusDays(1));
-        lastBooking.setBooker(booker);
-        lastBooking.setItem(item1);
-
-        Booking nextBooking = new Booking();
-        nextBooking.setId(11L);
-        nextBooking.setStart(LocalDateTime.now().plusDays(1));
-        nextBooking.setEnd(LocalDateTime.now().plusDays(2));
-        nextBooking.setBooker(booker);
-        nextBooking.setItem(item1);
-
-        when(bookingRepository.findLastBookingForItem(eq(itemId1), any(LocalDateTime.class), any()))
-                .thenReturn(List.of(lastBooking));
-        when(bookingRepository.findNextBookingForItem(eq(itemId1), any(LocalDateTime.class), any()))
-                .thenReturn(List.of(nextBooking));
-        when(bookingRepository.findLastBookingForItem(eq(itemId2), any(LocalDateTime.class), any()))
-                .thenReturn(List.of());
-        when(bookingRepository.findNextBookingForItem(eq(itemId2), any(LocalDateTime.class), any()))
-                .thenReturn(List.of());
-
         Comment comment = new Comment();
         comment.setId(1L);
         comment.setText("Comment");
         comment.setAuthor(booker);
+        comment.setItem(item1);  // <-- Этого не хватало!
         comment.setCreated(LocalDateTime.now());
 
         when(commentRepository.findAll()).thenReturn(List.of(comment));

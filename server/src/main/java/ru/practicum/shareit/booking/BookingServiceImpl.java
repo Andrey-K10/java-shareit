@@ -14,7 +14,6 @@ import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,10 +30,10 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto addBooking(Long userId, BookingRequestDto bookingRequestDto) {
         User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         Item item = itemRepository.findById(bookingRequestDto.getItemId())
-                .orElseThrow(() -> new NoSuchElementException("Item not found"));
+                .orElseThrow(() -> new NotFoundException("Item not found"));
 
         if (!item.getAvailable()) {
             throw new IllegalStateException("Item is not available");
