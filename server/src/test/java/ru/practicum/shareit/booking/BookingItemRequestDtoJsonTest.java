@@ -21,12 +21,27 @@ class BookingItemRequestDtoJsonTest {
     void testSerialize() throws Exception {
         LocalDateTime start = LocalDateTime.of(2024, 1, 1, 10, 0);
         LocalDateTime end = LocalDateTime.of(2024, 1, 1, 12, 0);
-        BookingRequestDto dto = new BookingRequestDto(start, end, 1L);
+
+        BookingRequestDto dto = new BookingRequestDto();
+        dto.setStart(start);
+        dto.setEnd(end);
+        dto.setItemId(1L);
 
         JsonContent<BookingRequestDto> result = json.write(dto);
 
         assertThat(result).hasJsonPathStringValue("$.start");
         assertThat(result).hasJsonPathStringValue("$.end");
         assertThat(result).hasJsonPathNumberValue("$.itemId");
+    }
+
+    @Test
+    void testDeserialize() throws Exception {
+        String content = "{\"start\":\"2024-01-01T10:00:00\",\"end\":\"2024-01-01T12:00:00\",\"itemId\":1}";
+
+        BookingRequestDto dto = json.parseObject(content);
+
+        assertThat(dto.getStart()).isEqualTo(LocalDateTime.of(2024, 1, 1, 10, 0));
+        assertThat(dto.getEnd()).isEqualTo(LocalDateTime.of(2024, 1, 1, 12, 0));
+        assertThat(dto.getItemId()).isEqualTo(1L);
     }
 }
