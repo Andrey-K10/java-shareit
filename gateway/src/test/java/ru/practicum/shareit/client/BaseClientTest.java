@@ -170,11 +170,6 @@ class BaseClientTest {
         }
 
         @Override
-        public <T> ResponseEntity<Object> post(String path, Long userId, T body) {
-            return super.post(path, userId, body);
-        }
-
-        @Override
         public <T> ResponseEntity<Object> patch(String path, T body) {
             return super.patch(path, body);
         }
