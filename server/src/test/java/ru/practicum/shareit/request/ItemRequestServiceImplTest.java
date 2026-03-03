@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -35,16 +36,45 @@ class ItemRequestServiceImplTest {
     private ItemRequestServiceImpl itemRequestService;
 
     @Test
-    void addRequest_whenUserNotFound_throwNoSuchElementException() {
+    void addRequest_whenUserNotFound_throwNotFoundException() {
         Long userId = 1L;
         ItemRequestDto requestDto = new ItemRequestDto();
         requestDto.setDescription("Need a drill");
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> itemRequestService.addRequest(userId, requestDto));
+        assertThrows(NotFoundException.class, () -> itemRequestService.addRequest(userId, requestDto));
         verify(userRepository).findById(userId);
         verifyNoInteractions(itemRequestRepository, itemRequestMapper);
+    }
+
+    @Test
+    void getUserRequests_whenUserNotFound_throwNotFoundException() {
+        Long userId = 1L;
+
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.getUserRequests(userId));
+        verify(userRepository).existsById(userId);
+        verifyNoInteractions(itemRequestRepository);
+    }
+
+    @Test
+    void getAllRequests_whenUserNotFound_throwNotFoundException() {
+        Long userId = 1L;
+
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.getAllRequests(userId));
+    }
+
+    @Test
+    void getRequestById_whenRequestNotFound_throwNotFoundException() {
+        Long requestId = 999L;
+
+        when(itemRequestRepository.findById(requestId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.getRequestById(requestId));
     }
 
     @Test

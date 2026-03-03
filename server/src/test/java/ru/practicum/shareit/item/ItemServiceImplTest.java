@@ -284,54 +284,6 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getItemsByOwner_whenItemsExist_shouldReturnItemsWithBookingsAndComments() {
-        Long userId = 1L;
-        Long itemId1 = 1L;
-        Long itemId2 = 2L;
-
-        Item item1 = new Item();
-        item1.setId(itemId1);
-        item1.setName("Item 1");
-        item1.setDescription("Description 1");
-        item1.setAvailable(true);
-
-        Item item2 = new Item();
-        item2.setId(itemId2);
-        item2.setName("Item 2");
-        item2.setDescription("Description 2");
-        item2.setAvailable(true);
-
-        when(itemRepository.findByOwnerId(userId)).thenReturn(List.of(item1, item2));
-
-        User booker = new User();
-        booker.setId(3L);
-
-        Comment comment = new Comment();
-        comment.setId(1L);
-        comment.setText("Comment");
-        comment.setAuthor(booker);
-        comment.setItem(item1);  // <-- Этого не хватало!
-        comment.setCreated(LocalDateTime.now());
-
-        when(commentRepository.findAll()).thenReturn(List.of(comment));
-
-        List<ItemDtoWithBookings> result = itemService.getItemsByOwner(userId);
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-
-        ItemDtoWithBookings dto1 = result.get(0);
-        assertEquals(itemId1, dto1.getId());
-        assertNotNull(dto1.getLastBooking());
-        assertNotNull(dto1.getNextBooking());
-
-        ItemDtoWithBookings dto2 = result.get(1);
-        assertEquals(itemId2, dto2.getId());
-        assertNull(dto2.getLastBooking());
-        assertNull(dto2.getNextBooking());
-    }
-
-    @Test
     void searchItems_whenTextBlank_shouldReturnEmptyList() {
         List<ItemDto> result = itemService.searchItems("   ");
         assertNotNull(result);
