@@ -66,6 +66,8 @@ class ItemRequestServiceImplTest {
         when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThrows(NotFoundException.class, () -> itemRequestService.getAllRequests(userId));
+        verify(userRepository).existsById(userId);
+        verifyNoInteractions(itemRequestRepository);
     }
 
     @Test
@@ -75,6 +77,8 @@ class ItemRequestServiceImplTest {
         when(itemRequestRepository.findById(requestId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> itemRequestService.getRequestById(requestId));
+        verify(itemRequestRepository).findById(requestId);
+        verifyNoInteractions(itemRepository, itemRequestMapper);
     }
 
     @Test

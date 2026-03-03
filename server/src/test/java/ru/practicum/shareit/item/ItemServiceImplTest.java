@@ -209,7 +209,6 @@ class ItemServiceImplTest {
 
         ItemDto updateDto = new ItemDto();
         updateDto.setName("New name");
-        // description and available are null
 
         Item updatedItem = new Item();
         updatedItem.setId(itemId);
