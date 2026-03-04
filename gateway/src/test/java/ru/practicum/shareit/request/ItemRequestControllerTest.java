@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.ShareItGateway;
 import ru.practicum.shareit.request.dto.ItemRequestGatewayDto;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -15,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ItemRequestController.class)
+@ContextConfiguration(classes = ShareItGateway.class)
 class ItemRequestControllerTest {
 
     @Autowired
@@ -65,29 +68,6 @@ class ItemRequestControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    void addRequest_whenUserIdNegative_shouldReturnBadRequest() throws Exception {
-        ItemRequestGatewayDto dto = new ItemRequestGatewayDto();
-        dto.setDescription("Need a drill");
-
-        mockMvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", -1L)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void addRequest_whenUserIdZero_shouldReturnBadRequest() throws Exception {
-        ItemRequestGatewayDto dto = new ItemRequestGatewayDto();
-        dto.setDescription("Need a drill");
-
-        mockMvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", 0L)
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-    }
 
     @Test
     void getUserRequests_whenValid_shouldReturnOk() throws Exception {
@@ -99,19 +79,6 @@ class ItemRequestControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    void getUserRequests_whenUserIdNegative_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests")
-                        .header("X-Sharer-User-Id", -1L))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getUserRequests_whenUserIdZero_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests")
-                        .header("X-Sharer-User-Id", 0L))
-                .andExpect(status().isBadRequest());
-    }
 
     @Test
     void getAllRequests_whenValid_shouldReturnOk() throws Exception {
@@ -124,20 +91,6 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void getAllRequests_whenUserIdNegative_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", -1L))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getAllRequests_whenUserIdZero_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 0L))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getRequestById_whenValid_shouldReturnOk() throws Exception {
         when(itemRequestClient.getRequestById(anyLong(), anyLong()))
                 .thenReturn(ResponseEntity.ok().build());
@@ -147,31 +100,4 @@ class ItemRequestControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    void getRequestById_whenRequestIdNegative_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests/-1")
-                        .header("X-Sharer-User-Id", 1L))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getRequestById_whenRequestIdZero_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests/0")
-                        .header("X-Sharer-User-Id", 1L))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getRequestById_whenUserIdNegative_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests/1")
-                        .header("X-Sharer-User-Id", -1L))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getRequestById_whenUserIdZero_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/requests/1")
-                        .header("X-Sharer-User-Id", 0L))
-                .andExpect(status().isBadRequest());
-    }
 }

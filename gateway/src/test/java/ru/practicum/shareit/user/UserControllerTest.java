@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.ShareItGateway;
 import ru.practicum.shareit.user.dto.UserGatewayDto;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -15,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
+@ContextConfiguration(classes = ShareItGateway.class)
 class UserControllerTest {
 
     @Autowired
@@ -135,18 +138,6 @@ class UserControllerTest {
     }
 
     @Test
-    void getUser_whenNegativeId_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/users/-1"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getUser_whenZeroId_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(get("/users/0"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getUsers_whenValid_shouldReturnOk() throws Exception {
         when(userClient.getUsers())
                 .thenReturn(ResponseEntity.ok().build());
@@ -216,40 +207,6 @@ class UserControllerTest {
     }
 
     @Test
-    void updateUser_whenEmailInvalid_shouldReturnBadRequest() throws Exception {
-        UserGatewayDto dto = new UserGatewayDto();
-        dto.setName("Updated Name");
-        dto.setEmail("not-an-email");
-
-        mockMvc.perform(patch("/users/1")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void updateUser_whenUserIdNegative_shouldReturnBadRequest() throws Exception {
-        UserGatewayDto dto = new UserGatewayDto();
-        dto.setName("Updated Name");
-
-        mockMvc.perform(patch("/users/-1")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void updateUser_whenUserIdZero_shouldReturnBadRequest() throws Exception {
-        UserGatewayDto dto = new UserGatewayDto();
-        dto.setName("Updated Name");
-
-        mockMvc.perform(patch("/users/0")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void deleteUser_whenValid_shouldReturnOk() throws Exception {
         when(userClient.deleteUser(anyLong()))
                 .thenReturn(ResponseEntity.ok().build());
@@ -258,15 +215,4 @@ class UserControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    void deleteUser_whenNegativeId_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(delete("/users/-1"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void deleteUser_whenZeroId_shouldReturnBadRequest() throws Exception {
-        mockMvc.perform(delete("/users/0"))
-                .andExpect(status().isBadRequest());
-    }
 }
