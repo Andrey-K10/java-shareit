@@ -181,5 +181,4 @@ class UserControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    
 }
