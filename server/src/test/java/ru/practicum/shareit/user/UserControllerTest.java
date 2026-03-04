@@ -180,4 +180,6 @@ class UserControllerTest {
         mockMvc.perform(delete("/users/{userId}", userId))
                 .andExpect(status().isNotFound());
     }
+
+    
 }

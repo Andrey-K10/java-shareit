@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -14,6 +15,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -468,6 +470,184 @@ class BookingServiceImplTest {
         when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThrows(NotFoundException.class, () -> bookingService.getUserBookings(userId, "ALL"));
+    }
+
+    @Test
+    void getUserBookings_whenStatePast_shouldReturnPastBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndEndIsBefore(eq(userId), any(LocalDateTime.class), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "PAST");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_whenStateFuture_shouldReturnFutureBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndStartIsAfter(eq(userId), any(LocalDateTime.class), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "FUTURE");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_whenStateCurrent_shouldReturnCurrentBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(eq(userId), any(LocalDateTime.class), any(LocalDateTime.class), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "CURRENT");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_whenStateWaiting_shouldReturnWaitingBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndStatus(eq(userId), eq(BookingStatus.WAITING), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "WAITING");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_whenStateRejected_shouldReturnRejectedBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndStatus(eq(userId), eq(BookingStatus.REJECTED), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "REJECTED");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_whenInvalidState_throwIllegalArgumentException() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getUserBookings(userId, "INVALID"));
+    }
+
+    @Test
+    void getOwnerBookings_whenUserNotFound_throwNotFoundException() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> bookingService.getOwnerBookings(userId, "ALL"));
+    }
+
+    @Test
+    void getOwnerBookings_whenStateAll_shouldReturnAllBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerId(eq(userId), any(Sort.class)))
+                .thenReturn(List.of(new Booking(), new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "ALL");
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_whenStatePast_shouldReturnPastBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndEndIsBefore(eq(userId), any(LocalDateTime.class), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "PAST");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_whenStateFuture_shouldReturnFutureBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndStartIsAfter(eq(userId), any(LocalDateTime.class), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "FUTURE");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_whenStateCurrent_shouldReturnCurrentBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfter(eq(userId), any(LocalDateTime.class), any(LocalDateTime.class), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "CURRENT");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_whenStateWaiting_shouldReturnWaitingBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndStatus(eq(userId), eq(BookingStatus.WAITING), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "WAITING");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_whenStateRejected_shouldReturnRejectedBookings() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdAndStatus(eq(userId), eq(BookingStatus.REJECTED), any(Sort.class)))
+                .thenReturn(List.of(new Booking()));
+        when(bookingMapper.toBookingDto(any())).thenReturn(new BookingDto());
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "REJECTED");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_whenInvalidState_throwIllegalArgumentException() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> bookingService.getOwnerBookings(userId, "INVALID"));
     }
 
 }

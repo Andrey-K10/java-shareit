@@ -12,6 +12,7 @@ import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -169,5 +170,23 @@ class BookingControllerTest {
         mockMvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", "invalid"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void addBooking_whenNoSuchElement_shouldReturnNotFound() throws Exception {
+        Long userId = 1L;
+        BookingRequestDto requestDto = new BookingRequestDto();
+        requestDto.setItemId(1L);
+        requestDto.setStart(LocalDateTime.now().plusHours(1));
+        requestDto.setEnd(LocalDateTime.now().plusHours(2));
+
+        when(bookingService.addBooking(eq(userId), any(BookingRequestDto.class)))
+                .thenThrow(new NoSuchElementException("Item or user not found"));
+
+        mockMvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isNotFound());
     }
 }

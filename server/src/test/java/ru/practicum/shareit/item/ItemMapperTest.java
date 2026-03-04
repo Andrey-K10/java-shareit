@@ -70,4 +70,5 @@ class ItemMapperTest {
         assertEquals("Author", dto.getAuthorName());
         assertNotNull(dto.getCreated());
     }
+
 }

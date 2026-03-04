@@ -4,6 +4,7 @@ import org.apache.coyote.BadRequestException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,5 +50,15 @@ class ErrorHandlerTest {
 
         assertNotNull(response);
         assertEquals("Invalid argument", response.get("error"));
+    }
+
+    @Test
+    void handleNoSuchElement_shouldReturnNotFound() {
+        NoSuchElementException exception = new NoSuchElementException("Element missing");
+
+        Map<String, String> response = errorHandler.handleNoSuchElement(exception);
+
+        assertNotNull(response);
+        assertEquals("Element missing", response.get("error"));
     }
 }

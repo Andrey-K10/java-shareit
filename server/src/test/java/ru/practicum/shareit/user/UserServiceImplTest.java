@@ -226,4 +226,19 @@ class UserServiceImplTest {
 
         assertThrows(NotFoundException.class, () -> userService.deleteUser(userId));
     }
+
+    @Test
+    void updateUser_withEmptyDto_shouldNotChangeFields() {
+        Long userId = 1L;
+        User existingUser = new User(userId, "Old Name", "old@example.com");
+        User updateData = new User(); // пустой объект
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(existingUser)).thenReturn(existingUser);
+
+        User result = userService.updateUser(userId, updateData);
+
+        assertEquals("Old Name", result.getName());
+        assertEquals("old@example.com", result.getEmail());
+    }
 }
