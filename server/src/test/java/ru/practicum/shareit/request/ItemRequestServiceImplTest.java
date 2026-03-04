@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.User;
@@ -304,32 +305,66 @@ class ItemRequestServiceImplTest {
         assertTrue(result.getItems().isEmpty());
     }
 
-    /*@Test
-    void getUserRequests_whenUserNotFound_throwNoSuchElementException() {
+    @Test
+    void addRequest_shouldSetRequestorAndCreated() {
         Long userId = 1L;
 
-        when(userRepository.existsById(userId)).thenReturn(false);
+        User user = new User();
+        user.setId(userId);
 
-        assertThrows(NoSuchElementException.class, () -> itemRequestService.getUserRequests(userId));
-        verify(userRepository).existsById(userId);
-        verifyNoInteractions(itemRequestRepository);
+        ItemRequestDto dto = new ItemRequestDto();
+        dto.setDescription("Test");
+
+        ItemRequest request = new ItemRequest();
+        request.setDescription("Test");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(itemRequestMapper.toItemRequest(dto)).thenReturn(request);
+        when(itemRequestRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(itemRequestMapper.toItemRequestDto(any())).thenReturn(dto);
+
+        itemRequestService.addRequest(userId, dto);
+
+        assertEquals(user, request.getRequestor());
+        assertNotNull(request.getCreated());
     }
 
     @Test
-    void getAllRequests_whenUserNotFound_throwNoSuchElementException() {
+    void getUserRequests_shouldMapAllItemFields() {
         Long userId = 1L;
 
-        when(userRepository.existsById(userId)).thenReturn(false);
+        User user = new User();
+        user.setId(userId);
 
-        assertThrows(NoSuchElementException.class, () -> itemRequestService.getAllRequests(userId));
+        ItemRequest request = new ItemRequest();
+        request.setId(1L);
+        request.setRequestor(user);
+
+        Item item = new Item();
+        item.setId(100L);
+        item.setName("Drill");
+        item.setDescription("Power drill");
+        item.setAvailable(true);
+        item.setRequest(request);
+
+        ItemRequestDto dto = new ItemRequestDto();
+        dto.setId(1L);
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(itemRequestRepository.findByRequestorIdOrderByCreatedDesc(userId))
+                .thenReturn(List.of(request));
+        when(itemRequestMapper.toItemRequestDto(request)).thenReturn(dto);
+        when(itemRepository.findByRequestId(1L))
+                .thenReturn(List.of(item));
+
+        List<ItemRequestDto> result = itemRequestService.getUserRequests(userId);
+
+        ItemDto itemDto = result.get(0).getItems().get(0);
+
+        assertEquals(100L, itemDto.getId());
+        assertEquals("Drill", itemDto.getName());
+        assertEquals("Power drill", itemDto.getDescription());
+        assertTrue(itemDto.getAvailable());
+        assertEquals(1L, itemDto.getRequestId());
     }
-
-    @Test
-    void getRequestById_whenRequestNotFound_throwNoSuchElementException() {
-        Long requestId = 999L;
-
-        when(itemRequestRepository.findById(requestId)).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> itemRequestService.getRequestById(requestId));
-    }*/
 }
