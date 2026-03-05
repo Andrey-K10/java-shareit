@@ -133,8 +133,8 @@ class BookingServiceImplTest {
     @Test
     void addBooking_shouldThrow_whenDatesInvalid() {
 
-        requestDto.setStart(LocalDateTime.now());
-        requestDto.setEnd(LocalDateTime.now());
+        requestDto.setStart(LocalDateTime.now().plusDays(2));
+        requestDto.setEnd(LocalDateTime.now().plusDays(1));
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(booker));
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
