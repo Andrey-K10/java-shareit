@@ -142,4 +142,20 @@ class BookingServiceImplTest {
         assertThrows(IllegalArgumentException.class,
                 () -> bookingService.addBooking(2L, requestDto));
     }
+
+    @Test
+    void getUserBookings_shouldThrow_whenStateUnknown() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> bookingService.getUserBookings(1L, "UNKNOWN"));
+    }
+
+    @Test
+    void getOwnerBookings_shouldThrow_whenStateUnknown() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> bookingService.getOwnerBookings(1L, "UNKNOWN"));
+    }
 }
