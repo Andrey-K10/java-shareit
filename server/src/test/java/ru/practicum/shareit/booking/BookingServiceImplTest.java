@@ -340,4 +340,214 @@ class BookingServiceImplTest {
                 () -> bookingService.addBooking(2L, requestDto));
     }
 
+    @Test
+    void updateBookingStatus_shouldApproveBooking() {
+        Long userId = 1L;
+        Long bookingId = 1L;
+
+        booking.setStatus(BookingStatus.WAITING);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any())).thenReturn(booking);
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        BookingDto result = bookingService.updateBookingStatus(userId, bookingId, true);
+
+        assertNotNull(result);
+        assertEquals(BookingStatus.APPROVED, booking.getStatus());
+
+        verify(bookingRepository).save(booking);
+    }
+
+    @Test
+    void updateBookingStatus_shouldRejectBooking() {
+        Long userId = 1L;
+        Long bookingId = 1L;
+
+        booking.setStatus(BookingStatus.WAITING);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any())).thenReturn(booking);
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        BookingDto result = bookingService.updateBookingStatus(userId, bookingId, false);
+
+        assertNotNull(result);
+        assertEquals(BookingStatus.REJECTED, booking.getStatus());
+
+        verify(bookingRepository).save(booking);
+    }
+
+    @Test
+    void getUserBookings_shouldReturnFutureBookings() {
+        Long userId = 2L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookingRepository.findByBookerIdAndStartIsAfter(
+                eq(userId),
+                any(LocalDateTime.class),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "FUTURE");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_shouldReturnCurrentBookings() {
+        Long userId = 2L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(
+                eq(userId),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "CURRENT");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_shouldReturnWaitingBookings() {
+        Long userId = 2L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByBookerIdAndStatus(
+                eq(userId),
+                eq(BookingStatus.WAITING),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "WAITING");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getUserBookings_shouldReturnRejectedBookings() {
+        Long userId = 2L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByBookerIdAndStatus(
+                eq(userId),
+                eq(BookingStatus.REJECTED),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getUserBookings(userId, "REJECTED");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_shouldReturnPastBookings() {
+        Long userId = 1L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByItemOwnerIdAndEndIsBefore(
+                eq(userId),
+                any(LocalDateTime.class),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "PAST");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_shouldReturnFutureBookings() {
+        Long userId = 1L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByItemOwnerIdAndStartIsAfter(
+                eq(userId),
+                any(LocalDateTime.class),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "FUTURE");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_shouldReturnCurrentBookings() {
+        Long userId = 1L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByItemOwnerIdAndStartIsBeforeAndEndIsAfter(
+                eq(userId),
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "CURRENT");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_shouldReturnWaitingBookings() {
+        Long userId = 1L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByItemOwnerIdAndStatus(
+                eq(userId),
+                eq(BookingStatus.WAITING),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "WAITING");
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getOwnerBookings_shouldReturnRejectedBookings() {
+        Long userId = 1L;
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        when(bookingRepository.findByItemOwnerIdAndStatus(
+                eq(userId),
+                eq(BookingStatus.REJECTED),
+                any(Sort.class)))
+                .thenReturn(List.of(booking));
+
+        when(bookingMapper.toBookingDto(any())).thenReturn(bookingDto);
+
+        List<BookingDto> result = bookingService.getOwnerBookings(userId, "REJECTED");
+
+        assertEquals(1, result.size());
+    }
+
 }
