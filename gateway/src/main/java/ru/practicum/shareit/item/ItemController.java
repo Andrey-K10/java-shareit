@@ -1,4 +1,3 @@
-// gateway - измененный пакет ru.practicum.shareit.item
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
@@ -10,6 +9,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentGatewayDto;
 import ru.practicum.shareit.item.dto.ItemGatewayDto;
+
+import java.util.Collections;
 
 @Slf4j
 @RestController
@@ -53,7 +54,13 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<Object> search(
             @RequestParam("text") String text) {
+
         log.info("Search items with text {}", text);
+
+        if (text == null || text.isBlank()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
         return itemClient.searchItems(text);
     }
 
